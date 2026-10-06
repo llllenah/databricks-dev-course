@@ -1,0 +1,31 @@
+resources:
+  pipelines:
+    lab5_bronze_pipeline:
+      name: lena066636-lab5-bronze-pipeline
+      catalog: dbr_dev_ua5816bd
+      target: lena066636_bronze
+      libraries:
+        - file:
+            path: ../pipelines/bronze/01_bronze_streaming.py
+        - file:
+            path: ../pipelines/bronze/02_bronze_landing.py
+      configuration:
+        eventhub_namespace: evhua5816bd
+        eventhub_name: crypto-ticks
+        secret_scope: team-crypto-scope
+        landing_path: /Volumes/dbr_dev_ua5816bd/lena066636_bronze/landing/cities/
+      development: true
+
+    lab5_silver_pipeline:
+      name: lena066636-lab5-silver-pipeline
+      catalog: dbr_dev_ua5816bd
+      target: lena066636_silver
+      libraries:
+        - file:
+            path: ../pipelines/silver/03_silver_cities.py
+        - file:
+            path: ../pipelines/silver/04_cities_scd2.py
+      configuration:
+        catalog: dbr_dev_ua5816bd
+        bronze_schema: lena066636_bronze
+      development: true

@@ -1,0 +1,12 @@
+bundle:
+  name: lab5_declarative_pipelines
+
+include:
+  - resources/*.yml
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://<your-workspace-url>
