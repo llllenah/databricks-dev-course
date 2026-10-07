@@ -1,6 +1,9 @@
 # Databricks notebook source
-
-dbutils.widgets.text("catalog", "dbr_dev_ua5816bd")
+# /// script
+# [tool.databricks.environment]
+# environment_version = "6"
+# ///
+dbutils.widgets.text("catalog", "dbr_dev_ua_5816_trail")
 dbutils.widgets.text("gold_schema", "lena066636_gold")
 dbutils.widgets.text("analyst_principal", "account users")
 
@@ -12,6 +15,7 @@ spark.sql(f"USE CATALOG {catalog}")
 tables = ["dim_customer", "dim_date", "dim_time", "fact_orders", "agg_daily_sales", "agg_hourly_sales", "agg_customer_sales"]
 
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## 1. Object permissions
 
@@ -25,6 +29,7 @@ display(spark.sql(f"SHOW GRANTS ON SCHEMA {gold}"))
 display(spark.sql(f"SHOW GRANTS ON TABLE {gold}.fact_orders"))
 
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## 2. Access table
 
@@ -45,6 +50,7 @@ spark.sql(f"""
 display(spark.table(f"{gold}.security_access"))
 
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## 3. Row-Level Security
 
@@ -61,6 +67,7 @@ spark.sql(f"""
 spark.sql(f"ALTER TABLE {gold}.fact_orders SET ROW FILTER {gold}.rls_segment_filter ON (segment)")
 
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## 4. Column-Level Security
 
@@ -77,6 +84,7 @@ spark.sql(f"""
 spark.sql(f"ALTER TABLE {gold}.dim_customer ALTER COLUMN customer_name SET MASK {gold}.cls_mask_customer")
 
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## 5. Test: full access
 
@@ -92,6 +100,7 @@ q = f"""
 display(spark.sql(q))
 
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## 6. Test: restricted user (simulated on the current user)
 
@@ -102,6 +111,7 @@ spark.sql(f"UPDATE {gold}.security_access SET full_access = false WHERE user_ema
 display(spark.sql(q))
 
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## 7. Restore full access
 

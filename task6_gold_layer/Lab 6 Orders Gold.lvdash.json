@@ -1,84 +1,783 @@
 {
   "datasets": [
     {
-      "name": "129c2374",
+      "name": "kpi_sales",
       "displayName": "kpi_sales",
       "queryLines": [
-        "SELECT d.date, f.segment, c.customer_name, f.order_id, f.amount FROM dbr_dev_ua_5816_trail.lena066636_gold.fact_orders f JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_date d ON f.date_key = d.date_key JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_customer c ON f.customer_key = c.customer_key"
+        "SELECT d.date, f.segment, c.customer_name, f.order_id, f.amount\n",
+        "FROM dbr_dev_ua_5816_trail.lena066636_gold.fact_orders f\n",
+        "JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_date d ON f.date_key = d.date_key\n",
+        "JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_customer c ON f.customer_key = c.customer_key"
       ]
     },
     {
-      "name": "ca0c70c4",
+      "name": "revenue_by_hour",
       "displayName": "revenue_by_hour",
       "queryLines": [
-        "SELECT timestampadd(HOUR, t.hour_of_day, CAST(d.date AS TIMESTAMP)) AS hour, t.day_part, f.segment, count(*) AS orders, round(sum(f.amount), 2) AS revenue FROM dbr_dev_ua_5816_trail.lena066636_gold.fact_orders f JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_date d ON f.date_key = d.date_key JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_time t ON f.time_key = t.time_key GROUP BY 1, 2, 3"
+        "SELECT timestampadd(HOUR, t.hour_of_day, CAST(d.date AS TIMESTAMP)) AS hour,\n",
+        "       t.day_part, f.segment, count(*) AS orders, round(sum(f.amount), 2) AS revenue\n",
+        "FROM dbr_dev_ua_5816_trail.lena066636_gold.fact_orders f\n",
+        "JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_date d ON f.date_key = d.date_key\n",
+        "JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_time t ON f.time_key = t.time_key\n",
+        "GROUP BY 1, 2, 3"
       ]
     },
     {
-      "name": "c6b7ce15",
+      "name": "top_customers",
       "displayName": "top_customers",
       "queryLines": [
-        "SELECT c.customer_name, g.segment, g.orders, g.revenue, g.avg_order_value FROM dbr_dev_ua_5816_trail.lena066636_gold.agg_customer_sales g JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_customer c ON g.customer_key = c.customer_key"
+        "SELECT c.customer_name, g.segment, g.orders, g.revenue, g.avg_order_value\n",
+        "FROM dbr_dev_ua_5816_trail.lena066636_gold.agg_customer_sales g\n",
+        "JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_customer c ON g.customer_key = c.customer_key\n",
+        "ORDER BY g.revenue DESC\n",
+        "LIMIT 10"
       ]
     },
     {
-      "name": "8dc691e3",
+      "name": "revenue_by_segment",
       "displayName": "revenue_by_segment",
       "queryLines": [
-        "SELECT d.date, f.segment, count(*) AS orders, round(sum(f.amount), 2) AS revenue FROM dbr_dev_ua_5816_trail.lena066636_gold.fact_orders f JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_date d ON f.date_key = d.date_key GROUP BY d.date, f.segment"
+        "SELECT d.date, f.segment, count(*) AS orders, round(sum(f.amount), 2) AS revenue\n",
+        "FROM dbr_dev_ua_5816_trail.lena066636_gold.fact_orders f\n",
+        "JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_date d ON f.date_key = d.date_key\n",
+        "GROUP BY d.date, f.segment"
       ]
     },
     {
-      "name": "14807b13",
+      "name": "order_amount_distribution",
       "displayName": "order_amount_distribution",
       "queryLines": [
-        "SELECT d.date, f.segment, CASE WHEN f.amount < 50 THEN '1) under 50' WHEN f.amount < 100 THEN '2) 50-100' WHEN f.amount < 150 THEN '3) 100-150' ELSE '4) 150+' END AS amount_bucket, count(*) AS orders FROM dbr_dev_ua_5816_trail.lena066636_gold.fact_orders f JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_date d ON f.date_key = d.date_key GROUP BY 1, 2, 3"
+        "SELECT d.date, f.segment,\n",
+        "       CASE WHEN f.amount < 50 THEN '1) under 50'\n",
+        "            WHEN f.amount < 100 THEN '2) 50-100'\n",
+        "            WHEN f.amount < 150 THEN '3) 100-150'\n",
+        "            ELSE '4) 150+' END AS amount_bucket,\n",
+        "       count(*) AS orders\n",
+        "FROM dbr_dev_ua_5816_trail.lena066636_gold.fact_orders f\n",
+        "JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_date d ON f.date_key = d.date_key\n",
+        "GROUP BY 1, 2, 3"
       ]
     },
     {
-      "name": "fe69f863",
+      "name": "revenue_by_day_part",
       "displayName": "revenue_by_day_part",
       "queryLines": [
-        "SELECT d.date, t.day_part, f.segment, count(*) AS orders, round(sum(f.amount), 2) AS revenue FROM dbr_dev_ua_5816_trail.lena066636_gold.fact_orders f JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_date d ON f.date_key = d.date_key JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_time t ON f.time_key = t.time_key GROUP BY d.date, t.day_part, f.segment"
+        "SELECT d.date, t.day_part, f.segment, count(*) AS orders, round(sum(f.amount), 2) AS revenue\n",
+        "FROM dbr_dev_ua_5816_trail.lena066636_gold.fact_orders f\n",
+        "JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_date d ON f.date_key = d.date_key\n",
+        "JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_time t ON f.time_key = t.time_key\n",
+        "GROUP BY d.date, t.day_part, f.segment"
       ]
     }
   ],
   "pages": [
     {
-      "name": "f3ed77a7",
-      "displayName": "Untitled page",
+      "name": "lab6_page",
+      "displayName": "Lab 6 Orders Gold",
       "layout": [
         {
           "widget": {
-            "name": "6b8c59ee",
+            "name": "f_date",
             "queries": [
               {
-                "name": "main_query",
+                "name": "q0",
                 "query": {
-                  "datasetName": "129c2374",
-                  "disaggregated": true
+                  "datasetName": "kpi_sales",
+                  "fields": [
+                    {
+                      "name": "date",
+                      "expression": "`date`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "q1",
+                "query": {
+                  "datasetName": "revenue_by_segment",
+                  "fields": [
+                    {
+                      "name": "date",
+                      "expression": "`date`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "q2",
+                "query": {
+                  "datasetName": "order_amount_distribution",
+                  "fields": [
+                    {
+                      "name": "date",
+                      "expression": "`date`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "q3",
+                "query": {
+                  "datasetName": "revenue_by_day_part",
+                  "fields": [
+                    {
+                      "name": "date",
+                      "expression": "`date`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "data": {
-                "queryName": "main_query"
+              "version": 2,
+              "widgetType": "filter-date-range-picker",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "date",
+                    "displayName": "date",
+                    "queryName": "q0"
+                  },
+                  {
+                    "fieldName": "date",
+                    "displayName": "date",
+                    "queryName": "q1"
+                  },
+                  {
+                    "fieldName": "date",
+                    "displayName": "date",
+                    "queryName": "q2"
+                  },
+                  {
+                    "fieldName": "date",
+                    "displayName": "date",
+                    "queryName": "q3"
+                  }
+                ]
               },
-              "version": 3,
-              "widgetType": "bar",
-              "encodings": {}
+              "frame": {
+                "showTitle": true,
+                "title": "Date range"
+              }
             }
           },
           "position": {
             "x": 0,
             "y": 0,
-            "width": 3,
+            "width": 2,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "f_segment",
+            "queries": [
+              {
+                "name": "q0",
+                "query": {
+                  "datasetName": "kpi_sales",
+                  "fields": [
+                    {
+                      "name": "segment",
+                      "expression": "`segment`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "q1",
+                "query": {
+                  "datasetName": "revenue_by_hour",
+                  "fields": [
+                    {
+                      "name": "segment",
+                      "expression": "`segment`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "q2",
+                "query": {
+                  "datasetName": "top_customers",
+                  "fields": [
+                    {
+                      "name": "segment",
+                      "expression": "`segment`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "q3",
+                "query": {
+                  "datasetName": "revenue_by_segment",
+                  "fields": [
+                    {
+                      "name": "segment",
+                      "expression": "`segment`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "q4",
+                "query": {
+                  "datasetName": "order_amount_distribution",
+                  "fields": [
+                    {
+                      "name": "segment",
+                      "expression": "`segment`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "q5",
+                "query": {
+                  "datasetName": "revenue_by_day_part",
+                  "fields": [
+                    {
+                      "name": "segment",
+                      "expression": "`segment`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "segment",
+                    "displayName": "segment",
+                    "queryName": "q0"
+                  },
+                  {
+                    "fieldName": "segment",
+                    "displayName": "segment",
+                    "queryName": "q1"
+                  },
+                  {
+                    "fieldName": "segment",
+                    "displayName": "segment",
+                    "queryName": "q2"
+                  },
+                  {
+                    "fieldName": "segment",
+                    "displayName": "segment",
+                    "queryName": "q3"
+                  },
+                  {
+                    "fieldName": "segment",
+                    "displayName": "segment",
+                    "queryName": "q4"
+                  },
+                  {
+                    "fieldName": "segment",
+                    "displayName": "segment",
+                    "queryName": "q5"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Segment"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 0,
+            "width": 2,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "f_customer",
+            "queries": [
+              {
+                "name": "q0",
+                "query": {
+                  "datasetName": "kpi_sales",
+                  "fields": [
+                    {
+                      "name": "customer_name",
+                      "expression": "`customer_name`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "q1",
+                "query": {
+                  "datasetName": "top_customers",
+                  "fields": [
+                    {
+                      "name": "customer_name",
+                      "expression": "`customer_name`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "customer_name",
+                    "displayName": "customer_name",
+                    "queryName": "q0"
+                  },
+                  {
+                    "fieldName": "customer_name",
+                    "displayName": "customer_name",
+                    "queryName": "q1"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Customer"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 0,
+            "width": 2,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "c_rev",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kpi_sales",
+                  "fields": [
+                    {
+                      "name": "sum(amount)",
+                      "expression": "SUM(`amount`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(amount)",
+                  "displayName": "Revenue"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Revenue"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 2,
             "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "c_orders",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kpi_sales",
+                  "fields": [
+                    {
+                      "name": "count(order_id)",
+                      "expression": "COUNT(`order_id`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "count(order_id)",
+                  "displayName": "Orders"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Orders"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 1,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "c_aov",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kpi_sales",
+                  "fields": [
+                    {
+                      "name": "avg(amount)",
+                      "expression": "AVG(`amount`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg(amount)",
+                  "displayName": "Avg order value"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Avg order value"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 1,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "w_hour",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "revenue_by_hour",
+                  "fields": [
+                    {
+                      "name": "hour",
+                      "expression": "`hour`"
+                    },
+                    {
+                      "name": "sum(revenue)",
+                      "expression": "SUM(`revenue`)"
+                    },
+                    {
+                      "name": "segment",
+                      "expression": "`segment`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "hour",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "displayName": "hour"
+                },
+                "y": {
+                  "fieldName": "sum(revenue)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Revenue"
+                },
+                "color": {
+                  "fieldName": "segment",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "segment"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Revenue per hour"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 4,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "b_daypart",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "revenue_by_day_part",
+                  "fields": [
+                    {
+                      "name": "day_part",
+                      "expression": "`day_part`"
+                    },
+                    {
+                      "name": "sum(revenue)",
+                      "expression": "SUM(`revenue`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "day_part",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  },
+                  "displayName": "day_part"
+                },
+                "y": {
+                  "fieldName": "sum(revenue)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "revenue"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Revenue per day part"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "b_segment",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "revenue_by_segment",
+                  "fields": [
+                    {
+                      "name": "segment",
+                      "expression": "`segment`"
+                    },
+                    {
+                      "name": "sum(revenue)",
+                      "expression": "SUM(`revenue`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "segment",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  },
+                  "displayName": "segment"
+                },
+                "y": {
+                  "fieldName": "sum(revenue)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "revenue"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Revenue per segment"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 10,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "b_top",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "top_customers",
+                  "fields": [
+                    {
+                      "name": "customer_name",
+                      "expression": "`customer_name`"
+                    },
+                    {
+                      "name": "sum(revenue)",
+                      "expression": "SUM(`revenue`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "customer_name",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  },
+                  "displayName": "customer_name"
+                },
+                "y": {
+                  "fieldName": "sum(revenue)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "revenue"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Top 10 customers by revenue"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 16,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "b_amount",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "order_amount_distribution",
+                  "fields": [
+                    {
+                      "name": "amount_bucket",
+                      "expression": "`amount_bucket`"
+                    },
+                    {
+                      "name": "sum(orders)",
+                      "expression": "SUM(`orders`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "amount_bucket",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "amount_bucket"
+                },
+                "y": {
+                  "fieldName": "sum(orders)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "orders"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Order amount distribution"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 16,
+            "width": 3,
+            "height": 6
           }
         }
       ],
-      "pageType": "PAGE_TYPE_CANVAS",
-      "layoutVersion": "GRID_V1"
+      "pageType": "PAGE_TYPE_CANVAS"
     }
   ],
   "uiSettings": {

@@ -1,6 +1,9 @@
 # Databricks notebook source
-
-dbutils.widgets.text("catalog", "dbr_dev_ua5816bd")
+# /// script
+# [tool.databricks.environment]
+# environment_version = "6"
+# ///
+dbutils.widgets.text("catalog", "dbr_dev_ua_5816_trail")
 dbutils.widgets.text("gold_schema", "lena066636_gold")
 dbutils.widgets.dropdown("mode", "log_real", ["log_real", "simulate_baseline", "simulate_drop"])
 

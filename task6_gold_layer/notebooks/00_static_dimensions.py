@@ -1,8 +1,11 @@
 # Databricks notebook source
-
+# /// script
+# [tool.databricks.environment]
+# environment_version = "6"
+# ///
 from pyspark.sql import functions as F
 
-dbutils.widgets.text("catalog", "dbr_dev_ua5816bd")
+dbutils.widgets.text("catalog", "dbr_dev_ua_5816_trail")
 dbutils.widgets.text("gold_schema", "lena066636_gold")
 dbutils.widgets.text("start_year", "2024")
 dbutils.widgets.text("end_year", "2030")
@@ -19,6 +22,7 @@ spark.sql(f"USE CATALOG {catalog}")
 spark.sql(f"CREATE SCHEMA IF NOT EXISTS {gold_schema}")
 
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## dim_date
 
@@ -46,6 +50,7 @@ else:
     print("dim_date already exists, skipped (set recreate = yes to rebuild)")
 
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## dim_time
 

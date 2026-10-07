@@ -1,8 +1,11 @@
 # Databricks notebook source
-
+# /// script
+# [tool.databricks.environment]
+# environment_version = "6"
+# ///
 from pyspark.sql import functions as F, Window
 
-dbutils.widgets.text("catalog", "dbr_dev_ua5816bd")
+dbutils.widgets.text("catalog", "dbr_dev_ua_5816_trail")
 dbutils.widgets.text("silver_schema", "lena066636_silver")
 dbutils.widgets.text("silver_table", "orders")
 dbutils.widgets.text("gold_schema", "lena066636_gold")
@@ -28,6 +31,7 @@ orders = (
 )
 
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## Customer dimension
 
@@ -44,6 +48,7 @@ dim_customer = (
 dim_customer.write.mode("overwrite").option("overwriteSchema", "true").saveAsTable(f"{gold}.dim_customer")
 
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## Fact table
 
@@ -64,6 +69,7 @@ fact_orders = (
 fact_orders.write.mode("overwrite").option("overwriteSchema", "true").saveAsTable(f"{gold}.fact_orders")
 
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## Aggregations (business-ready tables for the dashboard)
 
@@ -106,6 +112,7 @@ for t, c in comments.items():
     spark.sql(f"COMMENT ON TABLE {gold}.{t} IS '{c}'")
 
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## Validation
 

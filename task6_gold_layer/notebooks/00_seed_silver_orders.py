@@ -1,9 +1,12 @@
 # Databricks notebook source
-
+# /// script
+# [tool.databricks.environment]
+# environment_version = "6"
+# ///
 import random
 from datetime import datetime, timedelta
 
-dbutils.widgets.text("catalog", "dbr_dev_ua5816bd")
+dbutils.widgets.text("catalog", "dbr_dev_ua_5816_trail")
 dbutils.widgets.text("silver_schema", "lena066636_silver")
 dbutils.widgets.text("silver_table", "orders")
 
