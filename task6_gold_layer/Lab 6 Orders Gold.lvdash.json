@@ -1,0 +1,90 @@
+{
+  "datasets": [
+    {
+      "name": "129c2374",
+      "displayName": "kpi_sales",
+      "queryLines": [
+        "SELECT d.date, f.segment, c.customer_name, f.order_id, f.amount FROM dbr_dev_ua_5816_trail.lena066636_gold.fact_orders f JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_date d ON f.date_key = d.date_key JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_customer c ON f.customer_key = c.customer_key"
+      ]
+    },
+    {
+      "name": "ca0c70c4",
+      "displayName": "revenue_by_hour",
+      "queryLines": [
+        "SELECT timestampadd(HOUR, t.hour_of_day, CAST(d.date AS TIMESTAMP)) AS hour, t.day_part, f.segment, count(*) AS orders, round(sum(f.amount), 2) AS revenue FROM dbr_dev_ua_5816_trail.lena066636_gold.fact_orders f JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_date d ON f.date_key = d.date_key JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_time t ON f.time_key = t.time_key GROUP BY 1, 2, 3"
+      ]
+    },
+    {
+      "name": "c6b7ce15",
+      "displayName": "top_customers",
+      "queryLines": [
+        "SELECT c.customer_name, g.segment, g.orders, g.revenue, g.avg_order_value FROM dbr_dev_ua_5816_trail.lena066636_gold.agg_customer_sales g JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_customer c ON g.customer_key = c.customer_key"
+      ]
+    },
+    {
+      "name": "8dc691e3",
+      "displayName": "revenue_by_segment",
+      "queryLines": [
+        "SELECT d.date, f.segment, count(*) AS orders, round(sum(f.amount), 2) AS revenue FROM dbr_dev_ua_5816_trail.lena066636_gold.fact_orders f JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_date d ON f.date_key = d.date_key GROUP BY d.date, f.segment"
+      ]
+    },
+    {
+      "name": "14807b13",
+      "displayName": "order_amount_distribution",
+      "queryLines": [
+        "SELECT d.date, f.segment, CASE WHEN f.amount < 50 THEN '1) under 50' WHEN f.amount < 100 THEN '2) 50-100' WHEN f.amount < 150 THEN '3) 100-150' ELSE '4) 150+' END AS amount_bucket, count(*) AS orders FROM dbr_dev_ua_5816_trail.lena066636_gold.fact_orders f JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_date d ON f.date_key = d.date_key GROUP BY 1, 2, 3"
+      ]
+    },
+    {
+      "name": "fe69f863",
+      "displayName": "revenue_by_day_part",
+      "queryLines": [
+        "SELECT d.date, t.day_part, f.segment, count(*) AS orders, round(sum(f.amount), 2) AS revenue FROM dbr_dev_ua_5816_trail.lena066636_gold.fact_orders f JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_date d ON f.date_key = d.date_key JOIN dbr_dev_ua_5816_trail.lena066636_gold.dim_time t ON f.time_key = t.time_key GROUP BY d.date, t.day_part, f.segment"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "f3ed77a7",
+      "displayName": "Untitled page",
+      "layout": [
+        {
+          "widget": {
+            "name": "6b8c59ee",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "129c2374",
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "data": {
+                "queryName": "main_query"
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {}
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}
