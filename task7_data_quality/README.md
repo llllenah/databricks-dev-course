@@ -179,12 +179,3 @@ deploys the same project to the trial workspace with catalog `dbr_dev_ua_5816_tr
 The job and the pipeline are shared with the workspace `users` group (CAN_VIEW). The gold notebook
 grants `USE SCHEMA` and `SELECT` on the silver and gold schemas to `account users`, so reviewers
 can open the pipeline, the job runs and the data.
-
-## Notes from previous reviews
-
-- `dim_date` is loaded once for several years in a separate task and is not rebuilt with the facts.
-- `dim_time` holds the 24 hours with the day part. The fact table keeps `date_key` and `time_key`
-  only, with no high-cardinality timestamp column. A unit test checks this.
-- The whole lab is deployed as a pipeline and a job, so it is visible in Jobs & Pipelines.
-- The lab runs in the course DEV workspace, where reviewers already have access.
-- Read access for reviewers is granted on the job, the pipeline and the schemas.
