@@ -1,0 +1,69 @@
+resources:
+  jobs:
+    lab7_orders_dq:
+      name: lena066636-lab7-orders-dq
+      email_notifications:
+        on_failure:
+          - ${var.notification_email}
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: bronze_schema
+          default: ${var.bronze_schema}
+        - name: silver_schema
+          default: ${var.silver_schema}
+        - name: gold_schema
+          default: ${var.gold_schema}
+        - name: src_path
+          default: ${workspace.file_path}/src
+      tasks:
+        - task_key: unit_tests
+          notebook_task:
+            notebook_path: ../notebooks/run_unit_tests.py
+
+        - task_key: generate_landing_data
+          depends_on:
+            - task_key: unit_tests
+          notebook_task:
+            notebook_path: ../notebooks/00_generate_landing_data.py
+
+        - task_key: orders_pipeline
+          depends_on:
+            - task_key: generate_landing_data
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.lab7_orders_pipeline.id}
+            full_refresh: true
+
+        - task_key: static_dimensions
+          depends_on:
+            - task_key: unit_tests
+          notebook_task:
+            notebook_path: ../notebooks/01_static_dimensions.py
+
+        - task_key: build_gold
+          depends_on:
+            - task_key: orders_pipeline
+            - task_key: static_dimensions
+          notebook_task:
+            notebook_path: ../notebooks/02_build_gold.py
+            base_parameters:
+              viewer_group: account users
+
+        - task_key: delta_constraints
+          depends_on:
+            - task_key: build_gold
+          notebook_task:
+            notebook_path: ../notebooks/03_delta_constraints.py
+
+        - task_key: dq_suite
+          depends_on:
+            - task_key: delta_constraints
+          notebook_task:
+            notebook_path: ../notebooks/04_dq_suite.py
+
+    lab7_unit_tests:
+      name: lena066636-lab7-unit-tests
+      tasks:
+        - task_key: unit_tests
+          notebook_task:
+            notebook_path: ../notebooks/run_unit_tests.py

@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "orders_dq"
+version = "0.1.0"
+description = "Transformations and data quality checks for the orders medallion (Lab 7)"
+requires-python = ">=3.10"
+authors = [{ name = "Olena Serhiienko" }]
+
+[project.optional-dependencies]
+local = ["pyspark==4.0.1", "pytest>=8"]
+connect = ["databricks-connect==17.*", "pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"

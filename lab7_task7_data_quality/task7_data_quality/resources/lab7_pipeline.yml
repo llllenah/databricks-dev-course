@@ -1,0 +1,17 @@
+resources:
+  pipelines:
+    lab7_orders_pipeline:
+      name: lena066636-lab7-orders-dq-pipeline
+      catalog: ${var.catalog}
+      schema: ${var.silver_schema}
+      serverless: true
+      development: true
+      libraries:
+        - file:
+            path: ../pipelines/orders_pipeline.py
+      configuration:
+        catalog: ${var.catalog}
+        bronze_schema: ${var.bronze_schema}
+        silver_schema: ${var.silver_schema}
+        landing_path: /Volumes/${var.catalog}/${var.bronze_schema}/landing/orders/
+        src_path: ${workspace.file_path}/src

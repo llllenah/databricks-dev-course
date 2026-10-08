@@ -1,0 +1,39 @@
+bundle:
+  name: lab7_data_quality
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Unity Catalog catalog for all layers
+    default: dbr_dev_ua5816bd
+  bronze_schema:
+    default: lena066636_dq_bronze
+  silver_schema:
+    default: lena066636_dq_silver
+  gold_schema:
+    default: lena066636_dq_gold
+  viewer_group:
+    description: Group that gets read access to the tables, the job and the pipeline
+    default: users
+  notification_email:
+    default: lena066636@softserve.academy
+
+permissions:
+  - level: CAN_VIEW
+    group_name: ${var.viewer_group}
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-7405604651938730.10.azuredatabricks.net
+
+  trial:
+    mode: development
+    workspace:
+      host: https://adb-7405619332572019.19.azuredatabricks.net
+    variables:
+      catalog: dbr_dev_ua_5816_trail
