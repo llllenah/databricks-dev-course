@@ -43,6 +43,7 @@ jobs:
           path: task8_cicd/pytest-report.xml
 
   validate:
+    name: validate (${{ matrix.target }})
     if: github.event_name == 'pull_request'
     needs: unit-tests
     runs-on: ubuntu-latest
