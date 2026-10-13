@@ -1,0 +1,36 @@
+resources:
+  schemas:
+    bronze:
+      catalog_name: ${var.catalog}
+      name: orders_bronze
+      comment: Raw orders ingested from the landing volume
+      grants:
+        - principal: ${var.uc_readers}
+          privileges: [USE_SCHEMA, SELECT]
+
+    silver:
+      catalog_name: ${var.catalog}
+      name: orders_silver
+      comment: Validated orders and the quarantine
+      grants:
+        - principal: ${var.uc_readers}
+          privileges: [USE_SCHEMA, SELECT]
+
+    gold:
+      catalog_name: ${var.catalog}
+      name: orders_gold
+      comment: Star schema, aggregations and data quality results
+      grants:
+        - principal: ${var.uc_readers}
+          privileges: [USE_SCHEMA, SELECT]
+
+  volumes:
+    landing:
+      catalog_name: ${var.catalog}
+      schema_name: ${resources.schemas.bronze.name}
+      name: landing
+      volume_type: MANAGED
+      comment: JSON order files picked up by Auto Loader
+      grants:
+        - principal: ${var.uc_readers}
+          privileges: [READ_VOLUME]

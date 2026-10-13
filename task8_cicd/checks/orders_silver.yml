@@ -1,0 +1,54 @@
+# DQX checks for silver.orders_silver. A second, independent check of the rows the pipeline let through.
+# String literals in is_in_list are quoted: DQX reads a bare string as a column expression.
+
+- name: silver_required_not_null
+  criticality: error
+  user_metadata: {dimension: completeness}
+  check:
+    function: is_not_null
+    for_each_column: [order_id, customer, channel, amount, order_ts]
+
+- name: silver_order_id_unique
+  criticality: error
+  user_metadata: {dimension: uniqueness}
+  check:
+    function: is_unique
+    arguments:
+      columns: [order_id]
+
+- name: silver_amount_in_range
+  criticality: error
+  user_metadata: {dimension: validity}
+  check:
+    function: is_in_range
+    arguments:
+      column: amount
+      min_limit: 0.01
+      max_limit: 10000
+
+- name: silver_channel_accepted
+  criticality: error
+  user_metadata: {dimension: validity}
+  check:
+    function: is_in_list
+    arguments:
+      column: channel
+      allowed: ["'web'", "'mobile'", "'store'"]
+
+- name: silver_customer_format
+  criticality: error
+  user_metadata: {dimension: validity}
+  check:
+    function: regex_match
+    arguments:
+      column: customer
+      regex: "^cust_[0-9]+$"
+
+- name: silver_order_ts_not_in_future
+  criticality: error
+  user_metadata: {dimension: timeliness}
+  check:
+    function: is_not_in_future
+    arguments:
+      column: order_ts
+      offset: 3600

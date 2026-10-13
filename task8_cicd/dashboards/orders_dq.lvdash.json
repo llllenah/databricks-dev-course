@@ -1,0 +1,362 @@
+{
+  "datasets": [
+    {
+      "name": "sales",
+      "displayName": "Sales",
+      "queryLines": [
+        "SELECT d.date, f.channel, f.segment, f.order_id, f.amount\n",
+        "FROM fact_orders f\n",
+        "JOIN dim_date d ON f.date_key = d.date_key"
+      ]
+    },
+    {
+      "name": "dq_latest",
+      "displayName": "DQ scorecard (latest run)",
+      "queryLines": [
+        "SELECT layer, dimension, checks, passed, warnings, failed, score_pct\n",
+        "FROM dq_scorecard_latest"
+      ]
+    },
+    {
+      "name": "dq_runs",
+      "displayName": "DQ runs",
+      "queryLines": [
+        "SELECT run_id, min(run_ts) AS run_ts, split_part(run_id, '-', 1) AS source,\n",
+        "       count(*) AS checks, count_if(status = 'FAIL') AS failed,\n",
+        "       round(count_if(status = 'PASS') * 100.0 / count(*), 1) AS pass_pct\n",
+        "FROM dq_results\n",
+        "GROUP BY run_id"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "orders_dq",
+      "displayName": "Orders and data quality",
+      "layout": [
+        {
+          "widget": {
+            "name": "c_revenue",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "sales",
+                  "fields": [
+                    {
+                      "name": "sum(amount)",
+                      "expression": "SUM(`amount`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(amount)",
+                  "displayName": "Revenue"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Revenue"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "c_orders",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "sales",
+                  "fields": [
+                    {
+                      "name": "count(order_id)",
+                      "expression": "COUNT(`order_id`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "count(order_id)",
+                  "displayName": "Orders"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Orders"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 0,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "c_failed",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dq_latest",
+                  "fields": [
+                    {
+                      "name": "sum(failed)",
+                      "expression": "SUM(`failed`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(failed)",
+                  "displayName": "Failed DQ checks (latest run)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Failed DQ checks (latest run)"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 0,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "l_revenue",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "sales",
+                  "fields": [
+                    {
+                      "name": "date",
+                      "expression": "`date`"
+                    },
+                    {
+                      "name": "sum(amount)",
+                      "expression": "SUM(`amount`)"
+                    },
+                    {
+                      "name": "channel",
+                      "expression": "`channel`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "date",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "displayName": "date"
+                },
+                "y": {
+                  "fieldName": "sum(amount)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "sum(amount)"
+                },
+                "color": {
+                  "fieldName": "channel",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "channel"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Revenue per day and channel"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "b_score",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dq_latest",
+                  "fields": [
+                    {
+                      "name": "dimension",
+                      "expression": "`dimension`"
+                    },
+                    {
+                      "name": "avg(score_pct)",
+                      "expression": "AVG(`score_pct`)"
+                    },
+                    {
+                      "name": "layer",
+                      "expression": "`layer`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "dimension",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "dimension"
+                },
+                "y": {
+                  "fieldName": "avg(score_pct)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "avg(score_pct)"
+                },
+                "color": {
+                  "fieldName": "layer",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "layer"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "DQ score % by dimension and layer (latest run)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 9,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "l_runs",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dq_runs",
+                  "fields": [
+                    {
+                      "name": "run_ts",
+                      "expression": "`run_ts`"
+                    },
+                    {
+                      "name": "avg(pass_pct)",
+                      "expression": "AVG(`pass_pct`)"
+                    },
+                    {
+                      "name": "source",
+                      "expression": "`source`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "run_ts",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "displayName": "run_ts"
+                },
+                "y": {
+                  "fieldName": "avg(pass_pct)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "avg(pass_pct)"
+                },
+                "color": {
+                  "fieldName": "source",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "source"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "DQ pass rate per run (suite, constraints, dqx)"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 9,
+            "width": 3,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}
