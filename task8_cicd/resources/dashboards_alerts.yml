@@ -1,0 +1,35 @@
+resources:
+  dashboards:
+    orders_dq:
+      display_name: Orders and data quality
+      file_path: ../dashboards/orders_dq.lvdash.json
+      warehouse_id: ${var.warehouse_id}
+      # Queries in the file use plain table names, the bundle points them at the target's gold schema.
+      dataset_catalog: ${var.catalog}
+      dataset_schema: ${resources.schemas.gold.name}
+      embed_credentials: false
+
+  alerts:
+    dq_blocking_failures:
+      display_name: Orders DQ - blocking failures
+      warehouse_id: ${var.warehouse_id}
+      query_text: |
+        SELECT count_if(status = 'FAIL') AS failed
+        FROM ${var.catalog}.${resources.schemas.gold.name}.dq_results
+        WHERE run_ts >= current_timestamp() - INTERVAL 1 DAY
+      evaluation:
+        source:
+          name: failed
+        comparison_operator: GREATER_THAN
+        threshold:
+          value:
+            double_value: 0
+        empty_result_state: OK
+        notification:
+          notify_on_ok: true
+          subscriptions:
+            - user_email: ${var.notification_email}
+      schedule:
+        quartz_cron_schedule: "0 0 7 * * ?"
+        timezone_id: Europe/Kyiv
+        pause_status: ${var.schedule_pause_status}

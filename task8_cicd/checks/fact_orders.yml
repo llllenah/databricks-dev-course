@@ -1,0 +1,69 @@
+# DQX checks for gold.fact_orders. Foreign keys use reference DataFrames passed by the notebook
+# (dim_customer, dim_date, dim_time), so the file does not depend on the catalog or the schema.
+
+- name: fact_order_id_unique
+  criticality: error
+  user_metadata: {dimension: uniqueness}
+  check:
+    function: is_unique
+    arguments:
+      columns: [order_id]
+
+- name: fact_keys_not_null
+  criticality: error
+  user_metadata: {dimension: completeness}
+  check:
+    function: is_not_null
+    for_each_column: [date_key, time_key, customer_key, amount]
+
+- name: fact_customer_key_in_dim_customer
+  criticality: error
+  user_metadata: {dimension: consistency}
+  check:
+    function: foreign_key
+    arguments:
+      columns: [customer_key]
+      ref_columns: [customer_key]
+      ref_df_name: dim_customer
+
+- name: fact_date_key_in_dim_date
+  criticality: error
+  user_metadata: {dimension: consistency}
+  check:
+    function: foreign_key
+    arguments:
+      columns: [date_key]
+      ref_columns: [date_key]
+      ref_df_name: dim_date
+
+- name: fact_time_key_in_dim_time
+  criticality: error
+  user_metadata: {dimension: consistency}
+  check:
+    function: foreign_key
+    arguments:
+      columns: [time_key]
+      ref_columns: [time_key]
+      ref_df_name: dim_time
+
+- name: fact_amount_positive
+  criticality: error
+  user_metadata: {dimension: validity}
+  check:
+    function: sql_expression
+    arguments:
+      expression: amount > 0
+      msg: amount must be positive
+
+# Not blocking: a customer with an unusually high number of orders per day is worth a look,
+# but it is not a reason to stop the job.
+- name: fact_orders_per_customer_day
+  criticality: warn
+  user_metadata: {dimension: validity}
+  check:
+    function: is_aggr_not_greater_than
+    arguments:
+      column: order_id
+      aggr_type: count
+      group_by: [customer_key, date_key]
+      limit: 100

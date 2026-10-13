@@ -1,0 +1,7 @@
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.databricks/
+pytest-report.xml
+spark-warehouse/
+metastore_db/

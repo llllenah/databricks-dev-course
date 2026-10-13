@@ -1,0 +1,88 @@
+name: task8 CI/CD dev to prod
+
+# Pull request: unit tests and bundle validation for both targets.
+# Merge to main: unit tests, then deploy to the PROD workspace and run the job. No manual steps.
+
+on:
+  pull_request:
+    paths:
+      - "task8_cicd/**"
+      - ".github/workflows/task8-cicd.yml"
+  push:
+    branches: [main]
+    paths:
+      - "task8_cicd/**"
+      - ".github/workflows/task8-cicd.yml"
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: task8_cicd
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[local]"
+      - run: pytest --junitxml=pytest-report.xml
+        env:
+          SPARK_MODE: local
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: pytest-report
+          path: task8_cicd/pytest-report.xml
+
+  validate:
+    if: github.event_name == 'pull_request'
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: dev
+            host: https://adb-7405604651938730.10.azuredatabricks.net
+            token_secret: DATABRICKS_TOKEN
+          - target: prod
+            host: https://adb-7405619332572019.19.azuredatabricks.net
+            token_secret: PROD_DATABRICKS_TOKEN
+    env:
+      DATABRICKS_HOST: ${{ matrix.host }}
+      DATABRICKS_TOKEN: ${{ secrets[matrix.token_secret] }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: databricks/setup-cli@v1.18.0
+      - run: databricks bundle validate -t ${{ matrix.target }}
+
+  deploy-prod:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    environment: prod
+    # One deployment at a time; a newer merge waits instead of cancelling a running deploy.
+    concurrency:
+      group: task8-prod-deploy
+      cancel-in-progress: false
+    env:
+      DATABRICKS_HOST: https://adb-7405619332572019.19.azuredatabricks.net
+      DATABRICKS_TOKEN: ${{ secrets.PROD_DATABRICKS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: databricks/setup-cli@v1.18.0
+      - run: databricks bundle validate -t prod
+      - run: databricks bundle deploy -t prod --auto-approve
+      - name: Run the deployed job
+        run: databricks bundle run -t prod orders_daily
+      - name: Deployment summary
+        if: always()
+        run: databricks bundle summary -t prod >> "$GITHUB_STEP_SUMMARY"
