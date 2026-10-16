@@ -1,9 +1,4 @@
-"""Glue between Databricks Labs DQX and the results table of the custom suite.
-
-DQX runs the checks from the YAML files in `checks/` and adds the `_errors` and `_warnings` columns to
-every row. `check_results` turns those columns into one `CheckResult` per check, so DQX results land
-in `gold.dq_results` next to the suite and appear on the same scorecard and dashboard.
-"""
+"""Maps DQX result columns to CheckResult rows, so DQX lands in dq_results next to the suite."""
 
 from pathlib import Path
 
@@ -27,8 +22,7 @@ def _result_column(check: dict) -> str:
 
 
 def _failed(flagged: DataFrame, column: str, name: str) -> Column:
-    # A check with for_each_column produces one item per column with the same name, so rows are counted
-    # once per check, not once per item.
+    # for_each_column yields several items with the same name per row; count the row once.
     if column not in flagged.columns:
         return F.lit(0)
     hit = F.exists(F.col(column), lambda item: item["name"] == F.lit(name))
@@ -36,7 +30,6 @@ def _failed(flagged: DataFrame, column: str, name: str) -> Column:
 
 
 def check_results(flagged: DataFrame, checks: list[dict], layer: str, table: str) -> list[CheckResult]:
-    """One result per DQX check: rows that failed the check out of all rows of the checked DataFrame."""
     row = flagged.agg(
         F.count(F.lit(1)).alias("_total"),
         *[_failed(flagged, _result_column(c), c["name"]).alias(f"_c{i}") for i, c in enumerate(checks)],

@@ -1,6 +1,3 @@
-# DQX checks for silver.orders_silver. A second, independent check of the rows the pipeline let through.
-# String literals in is_in_list are quoted: DQX reads a bare string as a column expression.
-
 - name: silver_required_not_null
   criticality: error
   user_metadata: {dimension: completeness}
@@ -33,7 +30,7 @@
     function: is_in_list
     arguments:
       column: channel
-      allowed: ["'web'", "'mobile'", "'store'"]
+      allowed: ["'web'", "'mobile'", "'store'"]  # quoted: DQX treats bare strings as columns
 
 - name: silver_customer_format
   criticality: error

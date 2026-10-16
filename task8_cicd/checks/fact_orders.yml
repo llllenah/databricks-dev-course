@@ -1,6 +1,3 @@
-# DQX checks for gold.fact_orders. Foreign keys use reference DataFrames passed by the notebook
-# (dim_customer, dim_date, dim_time), so the file does not depend on the catalog or the schema.
-
 - name: fact_order_id_unique
   criticality: error
   user_metadata: {dimension: uniqueness}
@@ -55,8 +52,6 @@
       expression: amount > 0
       msg: amount must be positive
 
-# Not blocking: a customer with an unusually high number of orders per day is worth a look,
-# but it is not a reason to stop the job.
 - name: fact_orders_per_customer_day
   criticality: warn
   user_metadata: {dimension: validity}
