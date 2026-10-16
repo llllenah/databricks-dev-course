@@ -49,10 +49,10 @@ targets:
     presets:
       name_prefix: "[lena066636] "
     workspace:
-      host: https://adb-7405619332572019.19.azuredatabricks.net
+      host: https://adb-7405616780054557.17.azuredatabricks.net
       root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
     variables:
-      catalog: dbr_dev_ua_5816_trail
+      catalog: dbr_dev_ua_5816_trail_2
       warehouse_id:
         lookup:
           warehouse: Serverless Starter Warehouse
