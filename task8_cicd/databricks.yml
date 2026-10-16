@@ -29,8 +29,7 @@ permissions:
     group_name: ${var.viewer_group}
 
 targets:
-  # Course DEV workspace. Development mode prefixes every resource with dev_<user>_ / [dev <user>],
-  # so each developer gets isolated schemas, jobs and a pipeline in the shared catalog.
+  # Course workspace; development mode isolates resources per user (dev_<user>_ prefix).
   dev:
     mode: development
     default: true
@@ -42,17 +41,16 @@ targets:
         lookup:
           warehouse: Serverless Starter Warehouse
 
-  # Paid Azure workspace. Deployed only by CI on merge to main; nobody changes it by hand.
-  # The workspace is shared with other students, so every resource gets the user prefix.
+  # Deployed only by CI. The workspace is shared, so resources carry the user prefix.
   prod:
     mode: production
     presets:
       name_prefix: "[lena066636] "
     workspace:
-      host: https://adb-7405619332572019.19.azuredatabricks.net
+      host: https://adb-7405616780054557.17.azuredatabricks.net
       root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
     variables:
-      catalog: dbr_dev_ua_5816_trail
+      catalog: dbr_dev_ua_5816_trail_2
       warehouse_id:
         lookup:
           warehouse: Serverless Starter Warehouse

@@ -1,6 +1,5 @@
 resources:
   jobs:
-    # Data loading: write the landing files, then bronze and silver with the declarative pipeline.
     orders_ingest:
       name: orders-ingest
       max_concurrent_runs: 1
@@ -19,7 +18,7 @@ resources:
       tasks:
         - task_key: generate_landing_data
           notebook_task:
-            notebook_path: ../notebooks/00_generate_landing_data.py
+            notebook_path: ../notebooks/00_generate_landing_data.ipynb
 
         - task_key: orders_pipeline
           depends_on:
@@ -28,7 +27,6 @@ resources:
             pipeline_id: ${resources.pipelines.orders_pipeline.id}
             full_refresh: true
 
-    # Gold layer and data quality on top of silver.
     orders_gold_dq:
       name: orders-gold-dq
       max_concurrent_runs: 1
@@ -51,40 +49,39 @@ resources:
       tasks:
         - task_key: gold_ddl
           notebook_task:
-            notebook_path: ../notebooks/01_gold_ddl.py
+            notebook_path: ../notebooks/01_gold_ddl.ipynb
 
         - task_key: static_dimensions
           depends_on:
             - task_key: gold_ddl
           notebook_task:
-            notebook_path: ../notebooks/02_static_dimensions.py
+            notebook_path: ../notebooks/02_static_dimensions.ipynb
 
         - task_key: build_gold
           depends_on:
             - task_key: static_dimensions
           notebook_task:
-            notebook_path: ../notebooks/03_build_gold.py
+            notebook_path: ../notebooks/03_build_gold.ipynb
 
         - task_key: delta_constraints
           depends_on:
             - task_key: build_gold
           notebook_task:
-            notebook_path: ../notebooks/04_delta_constraints.py
+            notebook_path: ../notebooks/04_delta_constraints.ipynb
 
         - task_key: dqx_checks
           depends_on:
             - task_key: build_gold
           notebook_task:
-            notebook_path: ../notebooks/05_dqx_checks.py
+            notebook_path: ../notebooks/05_dqx_checks.ipynb
 
         - task_key: dq_suite
           depends_on:
             - task_key: delta_constraints
             - task_key: dqx_checks
           notebook_task:
-            notebook_path: ../notebooks/06_dq_suite.py
+            notebook_path: ../notebooks/06_dq_suite.ipynb
 
-    # Daily orchestration: loading first, then gold and data quality. CI runs this job after deploy.
     orders_daily:
       name: orders-daily
       max_concurrent_runs: 1
