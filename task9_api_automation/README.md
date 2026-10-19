@@ -29,6 +29,9 @@ provision cluster ─▶ notebook on the cluster ─▶ pipeline update ─▶ j
 Resource IDs come from `databricks bundle summary -o json`, so nothing is hardcoded. The cluster is
 deleted even when a step fails.
 
+`notebooks/platform_e2e.ipynb` runs the same scenario from a Databricks Git folder: it finds the
+pipeline and the job by name and shows the report as a table.
+
 ## CI/CD
 
 | Workflow | What runs `dbx-ops` |

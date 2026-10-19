@@ -1,5 +1,3 @@
-"""dbx-ops: platform operations on a Databricks workspace through the Python SDK."""
-
 import argparse
 import os
 import sys
@@ -9,7 +7,7 @@ from typing import Callable, Optional
 from databricks.sdk import WorkspaceClient
 
 from . import ops
-from .bundle import load_bundle
+from .bundle import OrdersBundle, load_bundle
 from .report import Report
 
 
@@ -17,16 +15,15 @@ def run_step(report: Report, name: str, action: Callable[[], ops.Outcome]) -> bo
     step = report.start(name)
     try:
         outcome = action()
-    except Exception as e:  # any API or timeout error ends the step, the report still gets written
+    except Exception as e:
         report.finish(step, "FAILED", f"{type(e).__name__}: {e}")
         return False
     report.finish(step, outcome.status, outcome.details, outcome.url)
     return outcome.ok
 
 
-def e2e(w: WorkspaceClient, bundle_summary: str, node_type: Optional[str], keep_cluster: bool) -> Report:
-    """Provision compute, ingest with a notebook on it, refresh the pipeline, run the gold job, clean up."""
-    bundle = load_bundle(bundle_summary)
+def e2e(w: WorkspaceClient, bundle: OrdersBundle, node_type: Optional[str] = None,
+        keep_cluster: bool = False) -> Report:
     report = Report("Platform e2e")
     cluster: dict[str, str] = {}
 
@@ -65,7 +62,7 @@ def parse_params(values: list[str]) -> dict[str, str]:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="dbx-ops", description=__doc__)
+    parser = argparse.ArgumentParser(prog="dbx-ops", description="Databricks platform operations")
     parser.add_argument("--profile", help="Databricks CLI profile; environment variables are used when omitted")
     parser.add_argument("--report-json", help="also write the report to this JSON file")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -105,7 +102,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def dispatch(w: WorkspaceClient, args: argparse.Namespace) -> Report:
     if args.command == "e2e":
-        return e2e(w, args.bundle_summary, args.node_type, args.keep_cluster)
+        return e2e(w, load_bundle(args.bundle_summary), args.node_type, args.keep_cluster)
 
     report = Report(f"dbx-ops {args.command}")
     if args.command == "cluster" and args.action == "create":

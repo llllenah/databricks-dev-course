@@ -5,8 +5,6 @@ from pathlib import Path
 
 @dataclass(frozen=True)
 class OrdersBundle:
-    """IDs and names of the Lab 8 bundle resources, read from `databricks bundle summary -o json`."""
-
     file_path: str
     catalog: str
     bronze_schema: str
