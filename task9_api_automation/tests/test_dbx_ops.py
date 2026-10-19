@@ -104,7 +104,7 @@ def fake_platform(monkeypatch, pipeline_status="SUCCESS"):
 
 def test_e2e_runs_every_step_and_cleans_up(monkeypatch, summary_file):
     calls = fake_platform(monkeypatch)
-    report = cli.e2e(MagicMock(), summary_file, None, keep_cluster=False)
+    report = cli.e2e(MagicMock(), load_bundle(summary_file))
     assert report.ok
     assert calls == ["create", ("notebook", "c-1"), ("pipeline", "pipe-1"), ("job", 42), ("delete", "c-1")]
     assert [s.name for s in report.steps][-1] == "delete cluster"
@@ -112,7 +112,7 @@ def test_e2e_runs_every_step_and_cleans_up(monkeypatch, summary_file):
 
 def test_e2e_stops_on_failure_and_still_deletes_cluster(monkeypatch, summary_file):
     calls = fake_platform(monkeypatch, pipeline_status="FAILED")
-    report = cli.e2e(MagicMock(), summary_file, None, keep_cluster=False)
+    report = cli.e2e(MagicMock(), load_bundle(summary_file))
     assert not report.ok
     assert ("job", 42) not in calls
     assert calls[-1] == ("delete", "c-1")
@@ -120,7 +120,7 @@ def test_e2e_stops_on_failure_and_still_deletes_cluster(monkeypatch, summary_fil
 
 def test_e2e_keep_cluster(monkeypatch, summary_file):
     calls = fake_platform(monkeypatch)
-    cli.e2e(MagicMock(), summary_file, None, keep_cluster=True)
+    cli.e2e(MagicMock(), load_bundle(summary_file), keep_cluster=True)
     assert ("delete", "c-1") not in calls
 
 

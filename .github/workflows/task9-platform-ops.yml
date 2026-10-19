@@ -1,8 +1,5 @@
 name: task9 platform ops
 
-# Unit tests on pull requests. The e2e scenario runs on PROD after every successful Lab 8 deployment
-# and on manual runs.
-
 on:
   pull_request:
     paths:
@@ -35,7 +32,6 @@ jobs:
     needs: unit-tests
     runs-on: ubuntu-latest
     environment: prod
-    # Shares the lock with the Lab 8 deploy, so the scenario never runs during a deployment.
     concurrency:
       group: task8-prod-deploy
       cancel-in-progress: false

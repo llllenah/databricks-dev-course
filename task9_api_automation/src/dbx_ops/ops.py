@@ -27,7 +27,6 @@ class Outcome:
 
 def poll(fetch: Callable[[], T], done: Callable[[T], bool], describe: Callable[[T], str],
          timeout: timedelta, interval: float = 15.0) -> T:
-    """Calls fetch until done() is true; logs every state change and raises TimeoutError at the deadline."""
     deadline = time.monotonic() + timeout.total_seconds()
     last = None
     while True:
@@ -45,7 +44,6 @@ def poll(fetch: Callable[[], T], done: Callable[[T], bool], describe: Callable[[
 
 def create_cluster(w: WorkspaceClient, name: str, node_type: Optional[str] = None, runtime: Optional[str] = None,
                    autotermination_minutes: int = 20, timeout: timedelta = timedelta(minutes=20)) -> compute.ClusterDetails:
-    """Single-node dedicated cluster for the current user, so Unity Catalog tables are readable from it."""
     node_type = node_type or w.clusters.select_node_type(local_disk=True, min_cores=4)
     runtime = runtime or w.clusters.select_spark_version(long_term_support=True, scala="2.13")
     log(f"  {node_type}, {runtime}")
