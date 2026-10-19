@@ -11,7 +11,7 @@ runs the job.
 | Target | Workspace | Catalog | Mode | Who deploys |
 |---|---|---|---|---|
 | `dev` (default) | course DEV `adb-7405604651938730` | `dbr_dev_ua5816bd` | development | developer, from the laptop |
-| `prod` | paid Azure (trial_2) `adb-7405616780054557` | `dbr_dev_ua_5816_trail_2` | production | GitHub Actions only, on merge to `main` |
+| `prod` | paid Azure (trial_3) `adb-7405613488297663` | `dbr_dev_ua_5816_trail_3` | production | GitHub Actions only, on merge to `main` |
 
 Development mode prefixes every resource (`dev_lena066636_orders_gold`, `[dev lena066636] orders-daily`),
 puts the pipeline in development mode and pauses schedules, so a developer never touches shared objects.

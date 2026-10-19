@@ -7,11 +7,13 @@ on:
   pull_request:
     paths:
       - "task8_cicd/**"
+      - "task9_api_automation/src/**"
       - ".github/workflows/task8-cicd.yml"
   push:
     branches: [main]
     paths:
       - "task8_cicd/**"
+      - "task9_api_automation/src/**"
       - ".github/workflows/task8-cicd.yml"
   workflow_dispatch:
 
@@ -55,7 +57,7 @@ jobs:
             host: https://adb-7405604651938730.10.azuredatabricks.net
             token_secret: DATABRICKS_TOKEN
           - target: prod
-            host: https://adb-7405616780054557.17.azuredatabricks.net
+            host: https://adb-7405613488297663.3.azuredatabricks.net
             token_secret: PROD_DATABRICKS_TOKEN
     env:
       DATABRICKS_HOST: ${{ matrix.host }}
@@ -75,15 +77,16 @@ jobs:
       group: task8-prod-deploy
       cancel-in-progress: false
     env:
-      DATABRICKS_HOST: https://adb-7405616780054557.17.azuredatabricks.net
+      DATABRICKS_HOST: https://adb-7405613488297663.3.azuredatabricks.net
       DATABRICKS_TOKEN: ${{ secrets.PROD_DATABRICKS_TOKEN }}
     steps:
       - uses: actions/checkout@v7
       - uses: databricks/setup-cli@v1.18.0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install ../task9_api_automation
       - run: databricks bundle validate -t prod
       - run: databricks bundle deploy -t prod --auto-approve
       - name: Run the deployed job
-        run: databricks bundle run -t prod orders_daily
-      - name: Deployment summary
-        if: always()
-        run: databricks bundle summary -t prod >> "$GITHUB_STEP_SUMMARY"
+        run: dbx-ops job --id "$(databricks bundle summary -t prod -o json | jq -r .resources.jobs.orders_daily.id)"

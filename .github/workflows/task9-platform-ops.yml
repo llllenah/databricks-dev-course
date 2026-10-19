@@ -1,0 +1,61 @@
+name: task9 platform ops
+
+# Unit tests on pull requests. The e2e scenario runs on PROD after every successful Lab 8 deployment
+# and on manual runs.
+
+on:
+  pull_request:
+    paths:
+      - "task9_api_automation/**"
+      - ".github/workflows/task9-platform-ops.yml"
+  workflow_run:
+    workflows: ["task8 CI/CD dev to prod"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: task9_api_automation
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[test]"
+      - run: pytest
+
+  e2e-prod:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    environment: prod
+    # Shares the lock with the Lab 8 deploy, so the scenario never runs during a deployment.
+    concurrency:
+      group: task8-prod-deploy
+      cancel-in-progress: false
+    env:
+      DATABRICKS_HOST: https://adb-7405613488297663.3.azuredatabricks.net
+      DATABRICKS_TOKEN: ${{ secrets.PROD_DATABRICKS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: databricks/setup-cli@v1.18.0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install .
+      - name: Read resource IDs of the deployed bundle
+        working-directory: task8_cicd
+        run: databricks bundle summary -t prod -o json > "$RUNNER_TEMP/bundle.json"
+      - name: Provision compute, run notebook, pipeline and job
+        run: dbx-ops --report-json e2e-report.json e2e --bundle-summary "$RUNNER_TEMP/bundle.json"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: e2e-report
+          path: task9_api_automation/e2e-report.json
