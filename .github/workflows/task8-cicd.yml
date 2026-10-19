@@ -7,13 +7,11 @@ on:
   pull_request:
     paths:
       - "task8_cicd/**"
-      - "task9_api_automation/src/**"
       - ".github/workflows/task8-cicd.yml"
   push:
     branches: [main]
     paths:
       - "task8_cicd/**"
-      - "task9_api_automation/src/**"
       - ".github/workflows/task8-cicd.yml"
   workflow_dispatch:
 

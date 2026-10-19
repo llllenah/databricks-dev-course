@@ -5,10 +5,11 @@ on:
     paths:
       - "task9_api_automation/**"
       - ".github/workflows/task9-platform-ops.yml"
-  workflow_run:
-    workflows: ["task8 CI/CD dev to prod"]
-    types: [completed]
+  push:
     branches: [main]
+    paths:
+      - "task9_api_automation/**"
+      - ".github/workflows/task9-platform-ops.yml"
   workflow_dispatch:
 
 defaults:
@@ -28,7 +29,7 @@ jobs:
       - run: pytest
 
   e2e-prod:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: unit-tests
     runs-on: ubuntu-latest
     environment: prod

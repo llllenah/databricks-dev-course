@@ -37,7 +37,7 @@ pipeline and the job by name and shows the report as a table.
 | Workflow | What runs `dbx-ops` |
 |---|---|
 | `task8-cicd.yml`, merge to `main` | after `bundle deploy -t prod`: `dbx-ops job` runs `orders-daily` and gates the deployment |
-| `task9-platform-ops.yml` | unit tests on pull requests; `dbx-ops e2e` on PROD after every successful Lab 8 deployment and on manual runs |
+| `task9-platform-ops.yml` | unit tests on pull requests; `dbx-ops e2e` on PROD when Lab 9 changes on `main` and on manual runs |
 
 The e2e job shares the concurrency group with the Lab 8 deployment, so they never overlap.
 
