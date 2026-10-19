@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dbx-ops"
+version = "0.1.0"
+description = "Databricks platform operations through the Python SDK (Lab 9)"
+requires-python = ">=3.10"
+authors = [{ name = "Olena Serhiienko" }]
+dependencies = ["databricks-sdk==0.152.0"]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[project.scripts]
+dbx-ops = "dbx_ops.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
