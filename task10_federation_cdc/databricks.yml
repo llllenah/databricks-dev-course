@@ -1,0 +1,36 @@
+bundle:
+  name: lab10_federation_cdc
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    default: dbr_dev_ua_5816_trail_3
+  sql_host:
+    default: sql-lena066636-lab10.database.windows.net
+  sql_database:
+    default: adventureworks
+  sql_user:
+    default: dbx_admin
+  secret_scope:
+    default: lab10
+  secret_key:
+    default: azure-sql-password
+  connection:
+    default: lena066636_azure_sql
+  foreign_catalog:
+    default: lena066636_adventureworks
+  dim_date_table:
+    default: dbr_dev_ua_5816_trail_3.lena066636_orders_gold.dim_date
+
+permissions:
+  - level: CAN_VIEW
+    group_name: users
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-7405613488297663.3.azuredatabricks.net
