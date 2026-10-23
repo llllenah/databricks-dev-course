@@ -1,0 +1,60 @@
+resources:
+  schemas:
+    lab10:
+      catalog_name: ${var.catalog}
+      name: lab10
+      comment: Delta targets of the federation and CDC lab
+
+  jobs:
+    lab10_federation_cdc:
+      name: lab10-federation-cdc
+      max_concurrent_runs: 1
+      parameters:
+        - name: sql_host
+          default: ${var.sql_host}
+        - name: sql_database
+          default: ${var.sql_database}
+        - name: sql_user
+          default: ${var.sql_user}
+        - name: secret_scope
+          default: ${var.secret_scope}
+        - name: secret_key
+          default: ${var.secret_key}
+        - name: connection
+          default: ${var.connection}
+        - name: foreign_catalog
+          default: ${var.foreign_catalog}
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${resources.schemas.lab10.name}
+        - name: dim_date_table
+          default: ${var.dim_date_table}
+      tasks:
+        - task_key: setup_source
+          notebook_task:
+            notebook_path: ../notebooks/00_setup_source.ipynb
+
+        - task_key: cdc_initial_load
+          depends_on:
+            - task_key: setup_source
+          notebook_task:
+            notebook_path: ../notebooks/03_cdc_merge.ipynb
+
+        - task_key: federation
+          depends_on:
+            - task_key: cdc_initial_load
+          notebook_task:
+            notebook_path: ../notebooks/01_federation.ipynb
+
+        - task_key: simulate_changes
+          depends_on:
+            - task_key: federation
+          notebook_task:
+            notebook_path: ../notebooks/02_simulate_changes.ipynb
+
+        - task_key: cdc_incremental
+          depends_on:
+            - task_key: simulate_changes
+          notebook_task:
+            notebook_path: ../notebooks/03_cdc_merge.ipynb
