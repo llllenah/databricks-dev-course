@@ -1,0 +1,29 @@
+bundle:
+  name: lab11_zerobus
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    default: dbr_dev_ua_5816_trail_3
+  zerobus_client_id:
+    description: Application ID of the service principal that writes to Zerobus
+    default: b35fa1cf-3642-4472-b83f-b383ade82dd2
+  zerobus_endpoint:
+    default: https://7405613488297663.zerobus.eastus.azuredatabricks.net
+  secret_scope:
+    default: lab11
+  secret_key:
+    default: zerobus-client-secret
+
+permissions:
+  - level: CAN_VIEW
+    group_name: users
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-7405613488297663.3.azuredatabricks.net

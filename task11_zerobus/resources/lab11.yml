@@ -1,0 +1,78 @@
+resources:
+  schemas:
+    lab11:
+      catalog_name: ${var.catalog}
+      name: lab11
+      comment: Zerobus Ingest target and idempotent silver
+
+  volumes:
+    checkpoints:
+      catalog_name: ${var.catalog}
+      schema_name: ${resources.schemas.lab11.name}
+      name: checkpoints
+      volume_type: MANAGED
+
+  jobs:
+    lab11_zerobus:
+      name: lab11-zerobus
+      max_concurrent_runs: 1
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${resources.schemas.lab11.name}
+        - name: zerobus_client_id
+          default: ${var.zerobus_client_id}
+        - name: zerobus_endpoint
+          default: ${var.zerobus_endpoint}
+        - name: workspace_url
+          default: ${workspace.host}
+        - name: secret_scope
+          default: ${var.secret_scope}
+        - name: secret_key
+          default: ${var.secret_key}
+      tasks:
+        - task_key: setup
+          notebook_task:
+            notebook_path: ../notebooks/00_setup.ipynb
+
+        - task_key: produce
+          depends_on:
+            - task_key: setup
+          notebook_task:
+            notebook_path: ../notebooks/01_producer.ipynb
+            base_parameters:
+              step: initial
+              from_seq: "0"
+              to_seq: "10000"
+
+        - task_key: silver
+          depends_on:
+            - task_key: produce
+          notebook_task:
+            notebook_path: ../notebooks/02_silver.ipynb
+
+        - task_key: produce_replay
+          depends_on:
+            - task_key: silver
+          notebook_task:
+            notebook_path: ../notebooks/01_producer.ipynb
+            base_parameters:
+              step: replay
+              from_seq: "9000"
+              to_seq: "11000"
+
+        - task_key: silver_after_replay
+          depends_on:
+            - task_key: produce_replay
+          notebook_task:
+            notebook_path: ../notebooks/02_silver.ipynb
+
+        - task_key: validate
+          depends_on:
+            - task_key: silver_after_replay
+          notebook_task:
+            notebook_path: ../notebooks/03_validate.ipynb
+            base_parameters:
+              expected_bronze: "12000"
+              expected_silver: "11000"
