@@ -1,0 +1,59 @@
+name: task12 RAG
+
+# Pull request: unit tests and bundle validation.
+# Merge to main: unit tests, then deploy to Databricks Free Edition and rebuild the index and evaluation.
+
+on:
+  pull_request:
+    paths:
+      - "task12_rag/**"
+      - ".github/workflows/task12-rag.yml"
+  push:
+    branches: [main]
+    paths:
+      - "task12_rag/**"
+      - ".github/workflows/task12-rag.yml"
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: task12_rag
+
+env:
+  DATABRICKS_HOST: https://dbc-8e12e7c0-b723.cloud.databricks.com
+  DATABRICKS_TOKEN: ${{ secrets.FREE_DATABRICKS_TOKEN }}
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install ".[test]"
+      - run: pytest
+
+  validate:
+    if: github.event_name == 'pull_request'
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: databricks/setup-cli@v1.18.0
+      - run: databricks bundle validate -t prod
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    environment: free
+    concurrency:
+      group: task12-deploy
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+      - uses: databricks/setup-cli@v1.18.0
+      - run: databricks bundle validate -t prod
+      - run: databricks bundle deploy -t prod --auto-approve
+      - run: databricks bundle run -t prod rag_build

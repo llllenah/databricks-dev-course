@@ -1,0 +1,82 @@
+resources:
+  schemas:
+    rag:
+      catalog_name: ${var.catalog}
+      name: rag
+      comment: Delta Lake docs knowledge assistant (Lab 12)
+      grants:
+        - principal: ${var.uc_readers}
+          privileges:
+            - USE_SCHEMA
+
+  volumes:
+    raw_docs:
+      catalog_name: ${var.catalog}
+      schema_name: ${resources.schemas.rag.name}
+      name: raw_docs
+      volume_type: MANAGED
+
+  jobs:
+    rag_build:
+      name: rag-build
+      max_concurrent_runs: 1
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${resources.schemas.rag.name}
+        - name: src_path
+          default: ${workspace.file_path}/src
+        - name: docs_repo
+          default: ${var.docs_repo}
+        - name: docs_commit
+          default: ${var.docs_commit}
+        - name: docs_prefix
+          default: ${var.docs_prefix}
+        - name: vs_endpoint
+          default: ${var.vs_endpoint}
+        - name: embedding_endpoint
+          default: ${var.embedding_endpoint}
+        - name: llm_endpoint
+          default: ${var.llm_endpoint}
+        - name: judge_endpoint
+          default: ${var.judge_endpoint}
+        - name: uc_readers
+          default: ${var.uc_readers}
+      tasks:
+        - task_key: ingest
+          notebook_task:
+            notebook_path: ../notebooks/00_ingest.ipynb
+
+        - task_key: chunk
+          depends_on:
+            - task_key: ingest
+          notebook_task:
+            notebook_path: ../notebooks/01_chunk.ipynb
+
+        - task_key: index
+          depends_on:
+            - task_key: chunk
+          notebook_task:
+            notebook_path: ../notebooks/02_index.ipynb
+
+        - task_key: evaluate
+          depends_on:
+            - task_key: index
+          notebook_task:
+            notebook_path: ../notebooks/03_evaluate.ipynb
+
+        - task_key: ask
+          depends_on:
+            - task_key: index
+          notebook_task:
+            notebook_path: ../notebooks/04_ask.ipynb
+
+  dashboards:
+    rag_monitoring:
+      display_name: RAG monitoring
+      file_path: ../dashboards/rag_monitoring.lvdash.json
+      warehouse_id: ${var.warehouse_id}
+      dataset_catalog: ${var.catalog}
+      dataset_schema: ${resources.schemas.rag.name}
+      embed_credentials: false

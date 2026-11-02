@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rag_kb"
+version = "0.1.0"
+description = "Chunking, prompts and evaluation helpers for the Delta Lake docs assistant (Lab 12)"
+requires-python = ">=3.10"
+authors = [{ name = "Olena Serhiienko" }]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
