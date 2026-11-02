@@ -1,0 +1,449 @@
+{
+ "datasets": [
+  {
+   "name": "eval_latest",
+   "displayName": "eval_latest",
+   "queryLines": [
+    "SELECT mode, coalesce(chunk_profile, 'none') AS chunk_profile, in_scope, question_id, hit_rank,\n",
+    "       CAST(hit_rank IS NOT NULL AS INT) AS hit, correct, relevant, grounded, CAST(abstained AS INT) AS abstained,\n",
+    "       latency_ms, prompt_tokens + completion_tokens AS tokens\n",
+    "FROM eval_results\n",
+    "WHERE run_id = (SELECT max_by(run_id, evaluated_at) FROM eval_results)\n"
+   ]
+  },
+  {
+   "name": "requests",
+   "displayName": "requests",
+   "queryLines": [
+    "SELECT logged_at, date_trunc('HOUR', logged_at) AS hour, source, mode, chunk_profile, user_name, question,\n",
+    "       answer, abstained, latency_ms, prompt_tokens, completion_tokens, retrieved_docs, cited_docs\n",
+    "FROM qa_log\n"
+   ]
+  }
+ ],
+ "pages": [
+  {
+   "name": "rag",
+   "displayName": "RAG monitoring",
+   "layout": [
+    {
+     "widget": {
+      "name": "c_requests",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "requests",
+         "fields": [
+          {
+           "name": "v_c_requests",
+           "expression": "COUNT(`logged_at`)"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "counter",
+       "encodings": {
+        "value": {
+         "fieldName": "v_c_requests",
+         "displayName": "Logged requests"
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Logged requests"
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 0,
+      "width": 2,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "c_latency",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "requests",
+         "fields": [
+          {
+           "name": "v_c_latency",
+           "expression": "AVG(`latency_ms`)"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "counter",
+       "encodings": {
+        "value": {
+         "fieldName": "v_c_latency",
+         "displayName": "Avg latency, ms"
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Avg latency, ms"
+       }
+      }
+     },
+     "position": {
+      "x": 2,
+      "y": 0,
+      "width": 2,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "c_tokens",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "requests",
+         "fields": [
+          {
+           "name": "v_c_tokens",
+           "expression": "SUM(`prompt_tokens` + `completion_tokens`)"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "counter",
+       "encodings": {
+        "value": {
+         "fieldName": "v_c_tokens",
+         "displayName": "Tokens used"
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Tokens used"
+       }
+      }
+     },
+     "position": {
+      "x": 4,
+      "y": 0,
+      "width": 2,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "b_quality",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "eval_latest",
+         "fields": [
+          {
+           "name": "mode",
+           "expression": "`mode`"
+          },
+          {
+           "name": "correct",
+           "expression": "AVG(CASE WHEN `in_scope` THEN `correct` END)"
+          },
+          {
+           "name": "grounded",
+           "expression": "AVG(CASE WHEN `in_scope` THEN `grounded` END)"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 3,
+       "widgetType": "bar",
+       "encodings": {
+        "x": {
+         "fieldName": "mode",
+         "scale": {
+          "type": "categorical"
+         },
+         "displayName": "mode"
+        },
+        "y": {
+         "scale": {
+          "type": "quantitative"
+         },
+         "fields": [
+          {
+           "fieldName": "correct",
+           "displayName": "Correct (in scope)"
+          },
+          {
+           "fieldName": "grounded",
+           "displayName": "Grounded (in scope)"
+          }
+         ]
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Latest evaluation: with vs without retrieval"
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 3,
+      "width": 3,
+      "height": 6
+     }
+    },
+    {
+     "widget": {
+      "name": "b_retrieval",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "eval_latest",
+         "fields": [
+          {
+           "name": "chunk_profile",
+           "expression": "`chunk_profile`"
+          },
+          {
+           "name": "hit",
+           "expression": "AVG(CASE WHEN `in_scope` AND `mode` = 'rag' THEN `hit` END)"
+          },
+          {
+           "name": "abstained",
+           "expression": "AVG(CASE WHEN NOT `in_scope` THEN `abstained` END)"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 3,
+       "widgetType": "bar",
+       "encodings": {
+        "x": {
+         "fieldName": "chunk_profile",
+         "scale": {
+          "type": "categorical"
+         },
+         "displayName": "chunk_profile"
+        },
+        "y": {
+         "scale": {
+          "type": "quantitative"
+         },
+         "fields": [
+          {
+           "fieldName": "hit",
+           "displayName": "Expected page in top 5"
+          },
+          {
+           "fieldName": "abstained",
+           "displayName": "Declined out of scope"
+          }
+         ]
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Latest evaluation: chunk profile"
+       }
+      }
+     },
+     "position": {
+      "x": 3,
+      "y": 3,
+      "width": 3,
+      "height": 6
+     }
+    },
+    {
+     "widget": {
+      "name": "b_hourly",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "requests",
+         "fields": [
+          {
+           "name": "hour",
+           "expression": "`hour`"
+          },
+          {
+           "name": "requests",
+           "expression": "COUNT(`logged_at`)"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 3,
+       "widgetType": "bar",
+       "encodings": {
+        "x": {
+         "fieldName": "hour",
+         "scale": {
+          "type": "categorical"
+         },
+         "displayName": "hour"
+        },
+        "y": {
+         "scale": {
+          "type": "quantitative"
+         },
+         "fields": [
+          {
+           "fieldName": "requests",
+           "displayName": "Requests"
+          }
+         ]
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Requests per hour"
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 9,
+      "width": 6,
+      "height": 5
+     }
+    },
+    {
+     "widget": {
+      "name": "t_recent",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "requests",
+         "fields": [
+          {
+           "name": "logged_at",
+           "expression": "`logged_at`"
+          },
+          {
+           "name": "source",
+           "expression": "`source`"
+          },
+          {
+           "name": "mode",
+           "expression": "`mode`"
+          },
+          {
+           "name": "chunk_profile",
+           "expression": "`chunk_profile`"
+          },
+          {
+           "name": "question",
+           "expression": "`question`"
+          },
+          {
+           "name": "answer",
+           "expression": "`answer`"
+          },
+          {
+           "name": "abstained",
+           "expression": "`abstained`"
+          },
+          {
+           "name": "latency_ms",
+           "expression": "`latency_ms`"
+          },
+          {
+           "name": "cited_docs",
+           "expression": "`cited_docs`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 1,
+       "widgetType": "table",
+       "encodings": {
+        "columns": [
+         {
+          "fieldName": "logged_at",
+          "displayName": "logged_at"
+         },
+         {
+          "fieldName": "source",
+          "displayName": "source"
+         },
+         {
+          "fieldName": "mode",
+          "displayName": "mode"
+         },
+         {
+          "fieldName": "chunk_profile",
+          "displayName": "chunk_profile"
+         },
+         {
+          "fieldName": "question",
+          "displayName": "question"
+         },
+         {
+          "fieldName": "answer",
+          "displayName": "answer"
+         },
+         {
+          "fieldName": "abstained",
+          "displayName": "abstained"
+         },
+         {
+          "fieldName": "latency_ms",
+          "displayName": "latency_ms"
+         },
+         {
+          "fieldName": "cited_docs",
+          "displayName": "cited_docs"
+         }
+        ]
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Prompts and responses"
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 14,
+      "width": 6,
+      "height": 8
+     }
+    }
+   ],
+   "pageType": "PAGE_TYPE_CANVAS"
+  }
+ ]
+}

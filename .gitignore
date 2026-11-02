@@ -1,0 +1,4 @@
+# Databricks AI Dev Kit: skills and install state are reinstalled with the kit installer
+.claude/
+.ai-dev-kit/
+.databricks/

@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "databricks": {
+      "command": "C:/Users/lena0/.ai-dev-kit/repo/.venv/Scripts/python.exe",
+      "args": [
+        "C:/Users/lena0/.ai-dev-kit/repo/databricks-mcp-server/run_server.py"
+      ],
+      "env": {
+        "DATABRICKS_CONFIG_PROFILE": "free"
+      }
+    }
+  }
+}
