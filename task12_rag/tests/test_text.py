@@ -13,6 +13,12 @@ Enabling upgrades the protocol. See [versioning](/versioning/).
 
 Intro paragraph about deletion vectors. ![diagram](img.png)
 
+<Aside
+  type="caution"
+>
+Multi-line component tag.
+</Aside>
+
 ## Enable deletion vectors
 
 <Tabs>
@@ -43,6 +49,8 @@ def test_clean_removes_mdx_but_keeps_code_and_link_text():
     assert "Warning:" in text
     assert "See versioning." in text
     assert "img.png" not in text
+    assert "Caution:\nMulti-line component tag." in text
+    assert "type=" not in text and "<Aside" not in text
     assert "```sql\n-- not a heading" in text
 
 
@@ -75,3 +83,9 @@ def test_chunk_document_rows_are_stable_and_bounded():
         assert all(r["char_count"] <= max_chars for r in rows)
         assert all(r["content"].startswith("What are deletion vectors?") for r in rows)
         assert {r["chunk_profile"] for r in rows} == {profile}
+
+
+def test_long_header_does_not_hang():
+    doc = "---\ntitle: " + "T" * 900 + "\n---\n\n" + "word " * 300
+    rows = chunk_document("long.mdx", doc, "small")
+    assert rows and all(r["content"].startswith("T" * 900) for r in rows)

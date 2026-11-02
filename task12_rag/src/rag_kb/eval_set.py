@@ -87,7 +87,7 @@ QUESTIONS = [
     },
     {
         "id": "q15",
-        "question": "Which Spark SQL extension must be configured to use Delta Lake with Apache Spark?",
+        "question": "Which Spark configurations are needed to use Delta Lake with Apache Spark?",
         "doc": "quick-start.mdx",
         "reference": "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension, plus the DeltaCatalog as spark_catalog.",
     },

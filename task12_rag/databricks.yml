@@ -10,8 +10,9 @@ variables:
   uc_readers:
     description: Principal that can read the chunks and the index
     default: account users
-  vs_endpoint_type:
-    default: STANDARD
+  vs_endpoint:
+    description: Vector Search endpoint; Free Edition allows one, so dev uses the endpoint of prod
+    default: lena066636-rag-docs
   embedding_endpoint:
     default: databricks-gte-large-en
   llm_endpoint:
@@ -49,3 +50,8 @@ targets:
     workspace:
       host: https://dbc-8e12e7c0-b723.cloud.databricks.com
       root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+    resources:
+      vector_search_endpoints:
+        docs:
+          name: ${var.vs_endpoint}
+          endpoint_type: STANDARD

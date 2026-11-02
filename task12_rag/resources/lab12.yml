@@ -4,6 +4,10 @@ resources:
       catalog_name: ${var.catalog}
       name: rag
       comment: Delta Lake docs knowledge assistant (Lab 12)
+      grants:
+        - principal: ${var.uc_readers}
+          privileges:
+            - USE_SCHEMA
 
   volumes:
     raw_docs:
@@ -11,11 +15,6 @@ resources:
       schema_name: ${resources.schemas.rag.name}
       name: raw_docs
       volume_type: MANAGED
-
-  vector_search_endpoints:
-    docs:
-      name: lena066636-rag-docs-${bundle.target}
-      endpoint_type: ${var.vs_endpoint_type}
 
   jobs:
     rag_build:
@@ -35,7 +34,7 @@ resources:
         - name: docs_prefix
           default: ${var.docs_prefix}
         - name: vs_endpoint
-          default: ${resources.vector_search_endpoints.docs.name}
+          default: ${var.vs_endpoint}
         - name: embedding_endpoint
           default: ${var.embedding_endpoint}
         - name: llm_endpoint

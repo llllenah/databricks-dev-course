@@ -4,7 +4,7 @@
    "name": "eval_latest",
    "displayName": "eval_latest",
    "queryLines": [
-    "SELECT mode, coalesce(chunk_profile, 'none') AS chunk_profile, in_scope, question_id, hit_rank,\n",
+    "SELECT mode, coalesce(chunk_profile, 'none') AS chunk_profile, concat(mode, ' / ', coalesce(chunk_profile, 'no context')) AS variant, in_scope, question_id, hit_rank,\n",
     "       CAST(hit_rank IS NOT NULL AS INT) AS hit, correct, relevant, grounded, CAST(abstained AS INT) AS abstained,\n",
     "       latency_ms, prompt_tokens + completion_tokens AS tokens\n",
     "FROM eval_results\n",
@@ -50,12 +50,12 @@
        "encodings": {
         "value": {
          "fieldName": "v_c_requests",
-         "displayName": "Logged requests"
+         "displayName": "Logged answers (all sources)"
         }
        },
        "frame": {
         "showTitle": true,
-        "title": "Logged requests"
+        "title": "Logged answers (all sources)"
        }
       }
      },
@@ -156,8 +156,8 @@
          "datasetName": "eval_latest",
          "fields": [
           {
-           "name": "mode",
-           "expression": "`mode`"
+           "name": "variant",
+           "expression": "`variant`"
           },
           {
            "name": "correct",
@@ -177,11 +177,11 @@
        "widgetType": "bar",
        "encodings": {
         "x": {
-         "fieldName": "mode",
+         "fieldName": "variant",
          "scale": {
           "type": "categorical"
          },
-         "displayName": "mode"
+         "displayName": "variant"
         },
         "y": {
          "scale": {
@@ -318,21 +318,79 @@
          "fields": [
           {
            "fieldName": "requests",
-           "displayName": "Requests"
+           "displayName": "Answers"
           }
          ]
         }
        },
        "frame": {
         "showTitle": true,
-        "title": "Requests per hour"
+        "title": "Answers per hour"
        }
       }
      },
      "position": {
       "x": 0,
       "y": 9,
-      "width": 6,
+      "width": 4,
+      "height": 5
+     }
+    },
+    {
+     "widget": {
+      "name": "b_source",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "requests",
+         "fields": [
+          {
+           "name": "source",
+           "expression": "`source`"
+          },
+          {
+           "name": "requests",
+           "expression": "COUNT(`logged_at`)"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 3,
+       "widgetType": "bar",
+       "encodings": {
+        "x": {
+         "fieldName": "source",
+         "scale": {
+          "type": "categorical"
+         },
+         "displayName": "source"
+        },
+        "y": {
+         "scale": {
+          "type": "quantitative"
+         },
+         "fields": [
+          {
+           "fieldName": "requests",
+           "displayName": "Answers"
+          }
+         ]
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Answers by source"
+       }
+      }
+     },
+     "position": {
+      "x": 4,
+      "y": 9,
+      "width": 2,
       "height": 5
      }
     },

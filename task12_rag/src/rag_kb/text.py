@@ -3,12 +3,15 @@ import re
 
 PROFILES = {"small": (800, 120), "large": (2400, 300)}
 MIN_CHARS = 40
+MIN_BODY = 200
 
 _FRONTMATTER = re.compile(r"\A---\n(.*?)\n---\n", re.S)
 _FENCE = re.compile(r"^\s*(```|~~~)")
 _HEADING = re.compile(r"^(#{1,4})\s+(.*?)\s*#*\s*$")
 _ASIDE = re.compile(r"^\s*<Aside\b([^>]*)>\s*$")
 _TITLE = re.compile(r'title="([^"]*)"')
+_TYPE = re.compile(r'type="([^"]*)"')
+_OPEN_TAG = re.compile(r"^\s*<[A-Z][A-Za-z]*\b[^>]*$")
 _TAG_LINE = re.compile(r"^\s*</?[A-Z][A-Za-z]*\b[^>]*>\s*$")
 _INLINE_TAG = re.compile(r"</?[A-Z][A-Za-z]*\b[^>]*?/?>")
 _COMMENT = re.compile(r"<!--.*?-->", re.S)
@@ -31,8 +34,16 @@ def parse_frontmatter(text):
 
 def clean_mdx(body):
     body = _COMMENT.sub("", body)
-    lines, in_code, fence_indent = [], False, 0
+    lines, in_code, fence_indent, pending = [], False, 0, None
     for line in body.splitlines():
+        if pending is not None:
+            pending += " " + line.strip()
+            if ">" not in line:
+                continue
+            line, pending = pending, None
+        elif not in_code and _OPEN_TAG.match(line):
+            pending = line.strip()
+            continue
         if _FENCE.match(line):
             if not in_code:
                 fence_indent = len(line) - len(line.lstrip())
@@ -46,8 +57,8 @@ def clean_mdx(body):
             continue
         aside = _ASIDE.match(line)
         if aside:
-            title = _TITLE.search(aside.group(1))
-            lines.append(f"{title.group(1) if title else 'Note'}:")
+            title = _TITLE.search(aside.group(1)) or _TYPE.search(aside.group(1))
+            lines.append(f"{title.group(1).capitalize() if title else 'Note'}:")
             continue
         if _TAG_LINE.match(line):
             continue
@@ -134,7 +145,7 @@ def chunk_document(doc_path, raw_text, profile):
     rows = []
     for section, section_text in split_sections(clean_mdx(body)):
         header = f"{title} > {section}" if section else title
-        for piece in chunk_text(section_text, max_chars - len(header) - 2, overlap):
+        for piece in chunk_text(section_text, max(max_chars - len(header) - 2, MIN_BODY), overlap):
             if len(piece) < MIN_CHARS:
                 continue
             index = len(rows)
