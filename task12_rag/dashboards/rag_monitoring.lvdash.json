@@ -5,7 +5,10 @@
    "displayName": "eval_latest",
    "queryLines": [
     "SELECT mode, coalesce(chunk_profile, 'none') AS chunk_profile, concat(mode, ' / ', coalesce(chunk_profile, 'no context')) AS variant, in_scope, question_id, hit_rank,\n",
-    "       CAST(hit_rank IS NOT NULL AS INT) AS hit, correct, relevant, grounded, CAST(abstained AS INT) AS abstained,\n",
+    "       CASE WHEN in_scope THEN correct END AS correct_in_scope,\n",
+    "       CASE WHEN in_scope THEN grounded END AS grounded_in_scope,\n",
+    "       CASE WHEN in_scope AND mode = 'rag' THEN CAST(hit_rank IS NOT NULL AS INT) END AS hit_in_top_k,\n",
+    "       CASE WHEN NOT in_scope THEN CAST(abstained AS INT) END AS declined_out_of_scope,\n",
     "       latency_ms, prompt_tokens + completion_tokens AS tokens\n",
     "FROM eval_results\n",
     "WHERE run_id = (SELECT max_by(run_id, evaluated_at) FROM eval_results)\n"
@@ -160,12 +163,12 @@
            "expression": "`variant`"
           },
           {
-           "name": "correct",
-           "expression": "AVG(CASE WHEN `in_scope` THEN `correct` END)"
+           "name": "avg_correct",
+           "expression": "AVG(`correct_in_scope`)"
           },
           {
-           "name": "grounded",
-           "expression": "AVG(CASE WHEN `in_scope` THEN `grounded` END)"
+           "name": "avg_grounded",
+           "expression": "AVG(`grounded_in_scope`)"
           }
          ],
          "disaggregated": false
@@ -189,11 +192,11 @@
          },
          "fields": [
           {
-           "fieldName": "correct",
+           "fieldName": "avg_correct",
            "displayName": "Correct (in scope)"
           },
           {
-           "fieldName": "grounded",
+           "fieldName": "avg_grounded",
            "displayName": "Grounded (in scope)"
           }
          ]
@@ -202,6 +205,9 @@
        "frame": {
         "showTitle": true,
         "title": "Latest evaluation: with vs without retrieval"
+       },
+       "mark": {
+        "layout": "group"
        }
       }
      },
@@ -226,12 +232,12 @@
            "expression": "`chunk_profile`"
           },
           {
-           "name": "hit",
-           "expression": "AVG(CASE WHEN `in_scope` AND `mode` = 'rag' THEN `hit` END)"
+           "name": "avg_hit",
+           "expression": "AVG(`hit_in_top_k`)"
           },
           {
-           "name": "abstained",
-           "expression": "AVG(CASE WHEN NOT `in_scope` THEN `abstained` END)"
+           "name": "avg_declined",
+           "expression": "AVG(`declined_out_of_scope`)"
           }
          ],
          "disaggregated": false
@@ -255,11 +261,11 @@
          },
          "fields": [
           {
-           "fieldName": "hit",
+           "fieldName": "avg_hit",
            "displayName": "Expected page in top 5"
           },
           {
-           "fieldName": "abstained",
+           "fieldName": "avg_declined",
            "displayName": "Declined out of scope"
           }
          ]
@@ -268,6 +274,9 @@
        "frame": {
         "showTitle": true,
         "title": "Latest evaluation: chunk profile"
+       },
+       "mark": {
+        "layout": "group"
        }
       }
      },
@@ -326,6 +335,9 @@
        "frame": {
         "showTitle": true,
         "title": "Answers per hour"
+       },
+       "mark": {
+        "layout": "group"
        }
       }
      },
@@ -384,6 +396,9 @@
        "frame": {
         "showTitle": true,
         "title": "Answers by source"
+       },
+       "mark": {
+        "layout": "group"
        }
       }
      },
@@ -445,7 +460,7 @@
        }
       ],
       "spec": {
-       "version": 1,
+       "version": 2,
        "widgetType": "table",
        "encodings": {
         "columns": [

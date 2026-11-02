@@ -230,7 +230,8 @@ not retraining the model.
 **What a human had to catch or decide:**
 - **Correctness.** The first job run failed on a `MERGE` the agent wrote (`UPDATE SET *, col = ...` is
   not valid SQL). The agent first called the MCP dashboard tool with a wrong action name. Both were
-  caught by running the code, not by reading it. The index wait loop could have passed before a new
+  caught by running the code, not by reading it. Two dashboard widgets passed the API but rendered
+  empty or invalid, which only showed up when someone opened the dashboard. The index wait loop could have passed before a new
   sync finished, which only a review caught. The evaluation references were checked against the pages,
   because a wrong reference makes the judge score the wrong thing. q15 failed in the first run because
   its reference asked for more than the question did, so the question was reworded.
